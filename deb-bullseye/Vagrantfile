@@ -1,0 +1,31 @@
+Vagrant.configure("2") do |config|
+    config.vm.box = "debian/bullseye64"
+
+	config.vm.hostname = "deb"
+
+	config.vm.network "public_network"
+
+	config.vm.provider "virtualbox" do |v|
+		v.name = "deb"
+		v.memory = "1024"
+		v.cpus = "2"
+		v.customize ["modifyvm", :id, "--usbohci", "on"]
+	end
+
+	config.vm.provision "shell", inline: <<-SHELL
+
+		apt update
+
+    	apt install -y openssh-server
+
+    	sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
+
+    	service ssh restart
+
+    	useradd -m -s /bin/bash vagrant
+		
+    	echo 'vagrant:vagrant' | chpasswd
+
+	SHELL
+end
+  
