@@ -1,0 +1,21 @@
+Vagrant.configure("2") do |config|
+
+    	config.vm.box = "debian/bullseye64"
+
+	config.vm.hostname = "debapache"
+
+    	config.vm.network "public_network"
+
+    	config.vm.provider "virtualbox" do |v|
+        	v.name = "debapache"
+        	v.memory = 1024
+        	v.cpus = 2
+        	v.customize ["modifyvm", :id, "--usbohci", "on"]
+    	end
+
+	config.vm.provision "shell", inline: <<-SHELL
+		apt update
+		apt install -y apache2
+	SHELL
+end
+  

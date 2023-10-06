@@ -1,0 +1,59 @@
+Vagrant.configure("2") do |config|
+    config.vm.box = "debian/bullseye64"
+
+	config.vm.hostname = "deb"
+
+	config.vm.network "public_network"
+
+	config.vm.provider "virtualbox" do |v|
+		v.name = "deb"
+		v.memory = "1024"
+		v.cpus = "2"
+		v.customize ["modifyvm", :id, "--usbohci", "on"]
+	end
+
+	# Install utils
+	config.vm.provision "shell", inline: <<-SHELL
+		apt update
+
+		apt install -y git vim apache2
+	SHELL
+
+	# Install Python 3.10 and virtualenv and create virtual environment
+	config.vm.provision "shell", inline: <<-SHELL
+		# Install Python 3.10
+		sudo apt install -y build-essential zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev libsqlite3-dev wget libbz2-dev
+	
+		wget https://www.python.org/ftp/python/3.10.12/Python-3.10.12.tgz
+		
+		tar -xf Python-3.10.*.tgz
+		
+		cd Python-3.10.*/
+		./configure --prefix=/usr/local --enable-optimizations --enable-shared LDFLAGS="-Wl,-rpath /usr/local/lib"
+		
+		make -j $(nproc)
+		make altinstall
+
+		# Install virtualenv and create a virtual environment named "venv"
+		cd ~
+		pip3.10 install virtualenv
+		python3.10 -m virtualenv venv
+	SHELL
+
+	config.vm.provision "shell", inline: <<-SHELL
+
+		apt update
+
+    	apt install -y openssh-server
+
+    	sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
+
+    	service ssh restart
+
+    	useradd -m -s /bin/bash vagrant
+		
+    	echo 'vagrant:vagrant' | chpasswd
+
+	SHELL
+end
+  

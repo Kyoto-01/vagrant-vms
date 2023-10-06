@@ -1,0 +1,24 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+
+        config.vm.box = "ubuntu/jammy64"
+
+        config.vm.network "public_network"
+
+        config.vm.provider "virtualbox" do |vb|
+                vb.name = "asterisk"
+                vb.memory = "2048"
+                vb.cpus = "2"
+        end
+
+        config.vm.provision "shell", inline: <<-SHELL
+                apt update
+                apt install -y asterisk
+                systemctl enable asterisk
+        SHELL
+
+        config.vm.hostname = "asterisk"
+
+end
